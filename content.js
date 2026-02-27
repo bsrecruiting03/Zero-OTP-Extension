@@ -191,33 +191,50 @@
   }
 
   /**
-   * Fill OTP code
+   * Fill OTP code with robust retry logic (for SPAs)
    */
   function fillOTP(otp) {
     log('Attempting to fill OTP:', otp);
+    let attempts = 0;
+    const maxAttempts = 10; // Try for up to 3 seconds total
 
-    try {
-      const input = findOTPInput();
+    const attemptFill = () => {
+      attempts++;
+      try {
+        const input = findOTPInput();
 
-      if (input) {
-        log('Found OTP input:', input);
+        if (input) {
+          log('Found OTP input on attempt:', attempts);
 
-        if (Array.isArray(input)) {
-          fillMultipleInputs(input, otp);
+          if (Array.isArray(input)) {
+            fillMultipleInputs(input, otp);
+          } else {
+            fillSingleInput(input, otp);
+          }
+
+          showSuccess(otp);
+          return true; // Success
+        } else if (attempts < maxAttempts) {
+          log('No OTP input found yet, retrying... attempt:', attempts);
+          setTimeout(attemptFill, 300); // Wait 300ms before retrying
+          return false;
         } else {
-          fillSingleInput(input, otp);
+          log('Max retries reached. No OTP input found, copying to clipboard');
+          copyToClipboard(otp);
+          return false;
         }
-
-        showSuccess(otp);
-      } else {
-        log('No OTP input found, copying to clipboard');
-        copyToClipboard(otp);
+      } catch (err) {
+        error('Error during fill attempt:', err);
+        if (attempts >= maxAttempts) {
+          copyToClipboard(otp);
+        } else {
+          setTimeout(attemptFill, 300);
+        }
+        return false;
       }
+    };
 
-    } catch (err) {
-      error('Error filling OTP:', err);
-      copyToClipboard(otp);
-    }
+    attemptFill(); // Start first attempt
   }
 
   /**
