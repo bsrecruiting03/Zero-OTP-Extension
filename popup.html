@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>OTP Smart Fill</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 360px;
+      min-height: 450px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .header {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 56px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 0 24px 24px;
+    }
+
+    /* Auth Section */
+    .auth-section {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .auth-section.hidden {
+      display: none;
+    }
+
+    .auth-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .auth-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .auth-desc {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .btn-google {
+      background: white;
+      color: #667eea;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-google:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Status Section */
+    .status-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .status-card.hidden {
+      display: none;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #4CAF50;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.inactive {
+      background: #999;
+      animation: none;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .status-label {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      background: rgba(76, 175, 80, 0.3);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-badge.inactive {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .status-desc {
+      font-size: 12px;
+      opacity: 0.85;
+      line-height: 1.5;
+    }
+
+    .btn-refresh {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(30deg);
+    }
+
+    .btn-refresh.spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* History */
+    .history-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .history-title {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-count {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    #history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(-4px);
+    }
+
+    .history-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-icon {
+      font-size: 20px;
+    }
+
+    .history-website {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .history-time {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .history-code {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+
+    .no-history {
+      text-align: center;
+      padding: 20px;
+      opacity: 0.7;
+      font-size: 13px;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .footer {
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.8;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="icon">🔐</div>
+    <h1>OTP Smart Fill</h1>
+    <p class="subtitle">Click to fill codes</p>
+  </div>
+
+  <div class="content">
+    <!-- Auth Section (shown when not authorized) -->
+    <div class="auth-section" id="auth-section">
+      <div class="auth-icon">🔑</div>
+      <div class="auth-title">Connect Gmail</div>
+      <div class="auth-desc">
+        Sign in with Google to detect OTP codes from your Gmail automatically.
+      </div>
+      <button class="btn-google" id="btn-authorize">
+        <span>🔍</span>
+        <span>Sign in with Google</span>
+      </button>
+    </div>
+
+    <!-- Status Section (shown when authorized) -->
+    <div class="status-card hidden" id="status-section">
+      <div class="status-row">
+        <div class="status-left">
+          <div class="status-dot" id="status-dot"></div>
+          <span class="status-label" id="status-label">Monitoring</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-refresh" id="btn-refresh" title="Check Now">🔄</button>
+          <span class="status-badge" id="status-badge">Ready</span>
+        </div>
+      </div>
+      <div class="status-desc" id="status-desc">
+        Checking Gmail every 1 second for OTP codes.
+      </div>
+    </div>
+
+    <!-- History Section -->
+    <div class="history-card">
+      <div class="history-header">
+        <div class="history-title">
+          <span>📋</span>
+          <span>Recent Codes</span>
+        </div>
+        <div class="history-count" id="history-count">0</div>
+      </div>
+      <div id="history-list">
+        <div class="no-history">No OTP codes yet</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" id="btn-toggle">
+        <span id="btn-toggle-icon">▶</span>
+        <span id="btn-toggle-text">Start</span>
+      </button>
+      <button class="btn btn-secondary" id="btn-clear">
+        <span>🗑️</span>
+        <span>Clear</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Always free & private
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>
