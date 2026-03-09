@@ -26,9 +26,8 @@ let state = {
 chrome.runtime.onInstalled.addListener(() => {
   log('Extension installed');
 
-  // Set the Uninstall URL to collect feedback
-  // Replace this with your actual Google Form or website feedback link
-  chrome.runtime.setUninstallURL('https://forms.gle/your-feedback-form-link-here');
+  // Final GitHub Pages URL for bsrecruiting03
+  chrome.runtime.setUninstallURL('https://bsrecruiting03.github.io/Zero-OTP-Extension/feedback.html');
 
   chrome.storage.local.set({
     otpHistory: [],
