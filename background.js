@@ -25,6 +25,11 @@ let state = {
  */
 chrome.runtime.onInstalled.addListener(() => {
   log('Extension installed');
+
+  // Set the Uninstall URL to collect feedback
+  // Replace this with your actual Google Form or website feedback link
+  chrome.runtime.setUninstallURL('https://forms.gle/your-feedback-form-link-here');
+
   chrome.storage.local.set({
     otpHistory: [],
     isMonitoring: false
@@ -77,6 +82,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'checkNow') {
     checkGmailForOTP().then(() => {
       sendResponse({ success: true });
+    }).catch(err => {
+      sendResponse({ success: false, error: err.message });
     });
     return true;
   }
@@ -502,6 +509,13 @@ function extractOTP(text) {
       c.reasons.push('numbers_without_context');
     }
 
+    // D. Final Adjustment for 6-digit Codes
+    // A clean 6-digit number is almost always a code, even without a keyword
+    if (/^\d{6}$/.test(code) && c.score < 15) {
+      c.score += 15;
+      c.reasons.push('six_digit_fallback_bonus');
+    }
+
     // Penalty 4: Common Words Check (if it's all letters)
     if (/^[A-Za-z]+$/.test(code)) {
       // Just a random 6-letter word in an email is very rarely an OTP
@@ -518,8 +532,8 @@ function extractOTP(text) {
 
   if (candidates.length > 0) {
     const best = candidates[0];
-    // Threshold: Need at least context OR strong format (score > 10)
-    if (best.score > 10) {
+    // Threshold: Need score > 10 (relaxed slightly)
+    if (best.score > 8) {
       return best.text;
     }
   }

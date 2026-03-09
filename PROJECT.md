@@ -3,20 +3,24 @@
 ## High-Level Vision
 To provide a seamless, magical "Apple-like" autofill experience for OTPs on the web, securely bridging the gap between a user's Gmail inbox and third-party authentication forms without requiring them to leave the active tab.
 
-## Current Features
+## Current Features (v2.2.0)
 - **Gmail API Integration**: Securely polls for new messages using OAuth2.
-- **Smart OTP Extraction**: Uses heuristics and text context to score and extract the most likely OTP candidate from an email body.
-- **Intelligent Autofill**: Automatically detects single-input and modern multi-input (split) OTP fields and simulates natural typing to fill them.
-- **Local History**: securely stores the last 5 OTPs locally for easy access and clipboard copying.
+- **Smart OTP Extraction**: Uses a refined heuristic scoring system to extract likely OTPs while penalizing false positives like years (2024/2025) or tracking numbers.
+- **Intelligent Autofill**: Automatically detects single-input and modern multi-digit split inputs.
+- **ATS Safety Filters**: Robust intelligence to avoid accidentally filling irrelevant fields (name, email, phone) on job portals like Greenhouse or Lever.
+- **SPA & iFrame Support**: Polling retry logic for slow-loading React apps and `all_frames` support for secure payment portals (Stripe, 3DS).
+- **Local History**: Securely stores the last 5 OTPs locally for quick access.
 
 ## Future Roadmap & Enhancements
-1. **Performance & Rate Limiting Optimization**:
-   - Refine the polling mechanism to handle Gmail API rate limits even more gracefully (e.g., exponential backoff) if quotas become an issue for public release.
-2. **Enhanced Parsing Engine**:
-   - Expand the heuristic model to support more obscure OTP formats, such as alphabetical-only backup codes or multi-language contexts.
-3. **Multi-Account Support**:
+1. **Multi-Account Support**:
    - Support monitoring multiple signed-in Google accounts simultaneously.
-4. **Firefox/Edge Support**:
-   - Adapt the manifest and identity APIs for cross-browser compatibility.
-5. **Chrome Web Store Publication**:
-   - Prepare store assets, finalize a privacy policy, and submit for Google's OAuth App Verification to transition from "Developer Mode" to a public listing.
+2. **Enhanced UI/UX**:
+   - Customizable auto-dismiss timers and improved micro-animations.
+3. **Cross-Browser Compatibility**:
+   - Official ports for Firefox and Microsoft Edge.
+4. **Cloud Sync (Optional/Secure)**:
+   - End-to-end encrypted synchronization of OTP history across devices.
+
+## Completion Status
+- [x] **v2.2.0 Reliability Update**: Successfully launched with extreme efficiency and safety fixes.
+- [x] **Chrome Web Store Publication**: Prepared, packaged, and uploaded for public listing.

@@ -177,9 +177,9 @@ async function handleRefresh() {
     btnRefresh.classList.add('spinning');
     btnRefresh.disabled = true;
 
-    await chrome.runtime.sendMessage({ action: 'checkNow' });
+    const response = await chrome.runtime.sendMessage({ action: 'checkNow' });
 
-    // Minimal delay for visual feedback
+    // Minimal delay for visual feedback, ensures we stop spinning
     setTimeout(() => {
       btnRefresh.classList.remove('spinning');
       btnRefresh.disabled = false;

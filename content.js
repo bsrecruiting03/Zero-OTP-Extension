@@ -301,9 +301,9 @@
         !input.disabled && !input.readOnly && !isIrrelevantInput(input)) {
         log('Using focused input');
 
-        // Check if focused input is part of a group
+        // Check if focused input is part of a real split OTP group
         const siblings = Array.from(input.parentNode.children).filter(el => el.tagName === 'INPUT');
-        if (siblings.length >= 4 && siblings.length <= 8) {
+        if (siblings.length >= 4 && siblings.length <= 8 && isLikelySplitGroup(siblings)) {
           return siblings;
         }
 
@@ -331,7 +331,7 @@
         if (isVisible(input) && !input.disabled && !input.readOnly) {
           // Double check: if this input is actually part of a group we missed?
           const siblings = Array.from(input.parentNode.children).filter(el => el.tagName === 'INPUT');
-          if (siblings.length >= 4 && siblings.length <= 8) {
+          if (siblings.length >= 4 && siblings.length <= 8 && isLikelySplitGroup(siblings)) {
             log('Input selector matched, but found it is part of a group');
             return siblings;
           }
@@ -365,31 +365,40 @@
     for (const [parent, inputs] of groupsByParent.entries()) {
       if (inputs.length >= 4 && inputs.length <= 8) {
         // Only check visibility for these specific sets of inputs
-        // This avoids thousands of getBoundingClientRect calls
         const visible = inputs.filter(inp => isVisible(inp));
 
-        if (visible.length >= 4 && visible.length <= 8) {
-          // Check if widths are similar
-          const w0 = visible[0].getBoundingClientRect().width;
-          const allSimilar = visible.every(inp => Math.abs(inp.getBoundingClientRect().width - w0) < 5);
-
-          // CRITICAL SAFETY FOR SPLIT INPUTS:
-          // In job applications, there might be 4 standard text fields (e.g. name, email, phone) 
-          // that share a parent and have the same width.
-          // True OTP split boxes are small (e.g., typically < 80px) or have maxLength = 1.
-          const isSmallWidth = w0 < 80;
-          const isSingleDigitMode = visible.every(inp => inp.maxLength === 1);
-
-          if (allSimilar && (isSmallWidth || isSingleDigitMode)) {
-            log('Found multi-digit input group:', visible.length);
-            return visible;
-          }
+        if (visible.length >= 4 && visible.length <= 8 && isLikelySplitGroup(visible)) {
+          log('Found multi-digit input group:', visible.length);
+          return visible;
         }
       }
     }
 
     log('No OTP input found');
     return null;
+  }
+
+  /**
+   * Helper to determine if a group of inputs is likely a split OTP box
+   */
+  function isLikelySplitGroup(inputs) {
+    if (!inputs || inputs.length < 4) return false;
+
+    try {
+      // Check if widths are similar
+      const w0 = inputs[0].getBoundingClientRect().width;
+      if (w0 === 0) return false; // Not visible/rendered yet
+
+      const allSimilar = inputs.every(inp => Math.abs(inp.getBoundingClientRect().width - w0) < 5);
+
+      // CRITICAL SAFETY: True OTP split boxes are small (< 80px) OR explicitly maxLength = 1
+      const isSmallWidth = w0 < 80;
+      const isSingleDigitMode = inputs.every(inp => inp.maxLength === 1);
+
+      return allSimilar && (isSmallWidth || isSingleDigitMode);
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
